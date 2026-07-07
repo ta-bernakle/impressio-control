@@ -1,0 +1,33 @@
+# Entorn virtual
+venv/
+env/
+
+# Base de dades (no pujar les dades reals)
+*.db
+*.sqlite
+*.sqlite3
+
+# Fitxers d'importació (CSV)
+setmana_*.csv
+*.csv
+
+# Backup
+*.bak
+*.backup
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
+.DS_Store
+Thumbs.db

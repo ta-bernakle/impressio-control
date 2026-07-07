@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control d'Impressió Digital</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            background: #eee;
+            transition: all 0.3s;
+        }
+        .tab:hover {
+            background: #ddd;
+        }
+        .tab.active {
+            background: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Formulari */
+        .formulari {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .formulari input {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .formulari input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .formulari button {
+            padding: 8px 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .formulari button:hover {
+            background: #218838;
+        }
+        /* Taula */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        .controls select, .controls input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th {
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        table tr:hover {
+            background: #f8f9fa;
+        }
+        .estat-pendent {
+            background-color: #ffeb3b !important;
+            font-weight: bold;
+        }
+        .estat-impres {
+            background-color: white;
+        }
+        .estat-acabat {
+            background-color: #c8e6c9;
+        }
+        .estat-selector {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .total-setmana {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        /* Gràfic */
+        .grafic-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        #grafic {
+            max-height: 400px;
+        }
+        .suggeriments {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 300px;
+        }
+        .suggeriment-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .suggeriment-item:hover {
+            background: #f0f0f0;
+        }
+        .relative {
+            position: relative;
+        }
+        @media (max-width: 768px) {
+            .formulari {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖨️ Control d'Impressió Digital</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="setmana">📋 Feines Setmana</div>
+            <div class="tab" data-tab="resum">📊 Resum Mensual</div>
+        </div>
+
+        <!-- TAB 1: Setmana -->
+        <div id="tab-setmana" class="tab-content active">
+            <div class="formulari">
+                <input type="text" id="comanda" placeholder="Núm. Comanda" tabindex="1">
+                <div class="relative">
+                    <input type="text" id="client" placeholder="Client" tabindex="2" autocomplete="off">
+                    <div id="suggeriments" class="suggeriments" style="display:none;"></div>
+                </div>
+                <input type="number" id="unitats" placeholder="Unitats" tabindex="3">
+                <input type="text" id="descripcio" placeholder="Descripció" tabindex="4">
+                <input type="number" id="import" placeholder="Import (€)" step="0.01" tabindex="5">
+                <input type="text" id="pressupost" placeholder="Pressupost" tabindex="6">
+                <button onclick="afegirFeina()" tabindex="7">➕ Afegir</button>
+            </div>
+
+            <div class="controls" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <label>Setmana:</label>
+                <input type="number" id="sel_setmana" value="27" min="1" max="52" style="width:60px;">
+                <label>Any:</label>
+                <input type="number" id="sel_any" value="2026" min="2020" max="2030" style="width:70px;">
+                <button onclick="carregarSetmana()">📥 Carregar</button>
+                <button onclick="carregarSetmanaActual()">📅 Setmana Actual</button>
+                
+                <div style="display: flex; gap: 5px; flex:1; min-width:300px;">
+                    <input type="text" id="cerca" placeholder="🔍 Cercar (client / descripció / comanda)..." style="padding:8px 12px;border:1px solid #ddd;border-radius:4px;flex:1;" oninput="cercaFeines()">
+                    <select id="tipus_cerca" onchange="cercaFeines()" style="padding:8px;border:1px solid #ddd;border-radius:4px;background:white;">
+                        <option value="local">📋 Setmana actual</option>
+                        <option value="global">🌍 Totes les setmanes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="info_setmana" style="margin-bottom: 10px; color: #666;"></div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Comanda</th>
+                        <th>Client</th>
+                        <th>Unitats</th>
+                        <th>Descripció</th>
+                        <th>Import (€)</th>
+                        <th>Pressupost</th>
+                        <th>Estat</th>
+                        <th>Accions</th>
+                    </tr>
+                </thead>
+                <tbody id="taula_feines">
+                    <tr><td colspan="9" style="text-align:center;">Carregant dades...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="total-setmana" id="total_setmana">Total setmana: 0,00 €</div>
+        </div>
+
+        <!-- TAB 2: Resum Mensual -->
+        <div id="tab-resum" class="tab-content">
+            <div class="controls">
+                <label>Any:</label>
+                <input type="number" id="resum_any" value="2026" min="2020" max="2030">
+                <button onclick="carregarResum()">📊 Carregar</button>
+            </div>
+            <!-- 🔥 INDICADOR DE L'ÚLTIM MES COMPLET -->
+            <div id="ultim-mes-indicador" style="display: none; margin: 15px 0; padding: 15px; border-radius: 8px; background: #f8f9fa; border-left: 6px solid #007bff;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div style="font-size: 24px;" id="tendencia-icon">📊</div>
+                    <div>
+                        <div style="font-size: 14px; color: #666;">Últim mes complet</div>
+                        <div style="font-size: 20px; font-weight: bold;" id="ultim-mes-nom">-</div>
+                    </div>
+                    <div style="flex: 1; display: flex; gap: 30px; flex-wrap: wrap;">
+                        <div>
+                            <div style="font-size: 12px; color: #666;" id="any-actual-label">2026</div>
+                            <div style="font-size: 18px; font-weight: bold;" id="ultim-total-actual">0,00 €</div>
+                            <div style="font-size: 12px; color: #666;" id="ultim-feines-actual">(0 feines)</div>
+                        </div>
+                        <div style="display: flex; align-items: center; font-size: 28px; color: #999;">↔</div>
+                        <div>
+                            <div style="font-size: 12px; color: #666;" id="any-anterior-label">2025</div>
+                            <div style="font-size: 18px; font-weight: bold;" id="ultim-total-anterior">0,00 €</div>
+                            <div style="font-size: 12px; color: #666;" id="ultim-feines-anterior">(0 feines)</div>
+                        </div>
+                    </div>
+                    <div style="min-width: 120px; text-align: center;">
+                        <div style="font-size: 14px; color: #666;">Variació</div>
+                        <div style="font-size: 22px; font-weight: bold;" id="ultim-diferencia">+0,00 €</div>
+                        <div style="font-size: 16px;" id="ultim-percent">+0%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="grafic-container">
+                <canvas id="grafic"></canvas>
+            </div>
+            <div id="resum_dades" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let grafic = null;
+        let feinesActuals = [];
+
+        // ========== CANVI DE TABS ==========
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+                if (this.dataset.tab === 'resum') carregarResum();
+            });
+        });
+
+        // ========== AUT OCOMPLETAR ==========
+        document.getElementById('client').addEventListener('input', function() {
+            const client = this.value;
+            if (client.length < 2) {
+                document.getElementById('suggeriments').style.display = 'none';
+                return;
+            }
+            
+            fetch(`/api/autocompletar?client=${encodeURIComponent(client)}`)
+                .then(res => res.json())
+                .then(data => {
+                    const sugg = document.getElementById('suggeriments');
+                    sugg.innerHTML = '';
+                    if (data.length === 0) {
+                        sugg.style.display = 'none';
+                        return;
+                    }
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'suggeriment-item';
+                        div.textContent = `${item.client} - ${item.descripcio.substring(0, 40)}... (${item.import}€)`;
+                        div.addEventListener('click', function() {
+                            document.getElementById('client').value = item.client;
+                            document.getElementById('comanda').value = item.comanda;
+                            document.getElementById('descripcio').value = item.descripcio;
+                            document.getElementById('pressupost').value = item.pressupost || '';
+                            document.getElementById('import').value = item.import || '';
+                            sugg.style.display = 'none';
+                            document.getElementById('comanda').focus();
+                        });
+                        sugg.appendChild(div);
+                    });
+                    sugg.style.display = 'block';
+                });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.relative')) {
+                document.getElementById('suggeriments').style.display = 'none';
+            }
+        });
+
+        // ========== AFEGIR FEINA ==========
+        function afegirFeina() {
+            const comanda = document.getElementById('comanda').value;
+            const client = document.getElementById('client').value;
+            const unitats = parseInt(document.getElementById('unitats').value) || 0;
+            const descripcio = document.getElementById('descripcio').value;
+            const import_valor = parseFloat(document.getElementById('import').value) || 0;
+            const pressupost = document.getElementById('pressupost').value;
+    
+            // Obtenir la setmana i any actuals (els que està visualitzant)
+            const setmana = document.getElementById('sel_setmana').value;
+            const any = document.getElementById('sel_any').value;
+
+            if (!client || !descripcio) {
+                alert('⚠️ Client i Descripció són obligatoris!');
+                return;
+            }
+
+            fetch('/api/feines', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    comanda, 
+                    client, 
+                    unitats, 
+                    descripcio, 
+                    import: import_valor, 
+                    pressupost,
+                    setmana: setmana,
+                    any: any
+                })
+            })
+            .then(res => res.json())
+            .then(() => {
+                // Netejar formulari
+                document.getElementById('comanda').value = '';
+                document.getElementById('client').value = '';
+                document.getElementById('unitats').value = '';
+                document.getElementById('descripcio').value = '';
+                document.getElementById('import').value = '';
+                document.getElementById('pressupost').value = '';
+                document.getElementById('comanda').focus();
+                carregarSetmana();
+            });
+        }
+
+        // ========== CANVIAR ESTAT ==========
+        function canviarEstat(id, nouEstat) {
+            fetch(`/api/feines/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ estat: parseInt(nouEstat) })
+            })
+            .then(() => carregarSetmana());
+        }
+
+        // ========== CARREGAR SETMANA ==========
+        function carregarSetmana() {
+            const setmana = document.getElementById('sel_setmana').value;
+            const any = document.getElementById('sel_any').value;
+            
+            fetch(`/api/feines?setmana=${setmana}&any=${any}`)
+                .then(res => res.json())
+                .then(data => {
+                    feinesActuals = data.feines;
+                    document.getElementById('info_setmana').textContent = 
+                        `Setmana ${data.setmana} de ${data.any} (${data.data_inici} - ${data.data_fi})`;
+                    
+                    const tbody = document.getElementById('taula_feines');
+                    tbody.innerHTML = '';
+                    
+                    let total = 0;
+                    data.feines.forEach(f => {
+                        total += f.import;
+                        const tr = document.createElement('tr');
+                        let classe = '';
+                        if (f.estat === 1) classe = 'estat-pendent';
+                        else if (f.estat === 3) classe = 'estat-acabat';
+                        tr.className = classe;
+                        
+                        tr.innerHTML = `
+                            <td>${f.id}</td>
+                            <td>${f.comanda}</td>
+                            <td>${f.client}</td>
+                            <td>${f.unitats}</td>
+                            <td>${f.descripcio}</td>
+                            <td>${f.import.toFixed(2)}</td>
+                            <td>${f.pressupost || ''}</td>
+                            <td>
+                                <select class="estat-selector" onchange="canviarEstat(${f.id}, this.value)">
+                                    <option value="1" ${f.estat === 1 ? 'selected' : ''}>🟡 Pendent</option>
+                                    <option value="2" ${f.estat === 2 ? 'selected' : ''}>⬜ Imprès</option>
+                                    <option value="3" ${f.estat === 3 ? 'selected' : ''}>🟢 Acabat</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button onclick="obrirEditor(${f.id})" style="background:#007bff;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">✏️</button>
+                                <button onclick="eliminarFeina(${f.id})" style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">🗑️</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    
+                    document.getElementById('total_setmana').textContent = 
+                        `Total setmana: ${total.toFixed(2)} € (${data.feines.length} feines)`;
+                });
+        }
+
+        function carregarSetmanaActual() {
+            const ara = new Date();
+            const setmana = ara.getWeekNumber();
+            const any = ara.getFullYear();
+            document.getElementById('sel_setmana').value = setmana;
+            document.getElementById('sel_any').value = any;
+            carregarSetmana();
+        }
+
+        // ========== CARREGAR RESUM ==========
+        function carregarResum() {
+            const any = document.getElementById('resum_any').value;
+            
+            // Carregar indicador de l'últim mes
+            carregarUltimMes();
+            
+            fetch(`/api/resum_mensual?any=${any}`)
+                .then(res => res.json())
+                .then(data => {
+                    const ctx = document.getElementById('grafic').getContext('2d');
+                    
+                    if (grafic) grafic.destroy();
+                    
+                    grafic = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.mesos,
+                            datasets: [
+                                {
+                                    label: data.any_actual_nom,
+                                    data: data.any_actual,
+                                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: data.any_anterior_nom,
+                                    data: data.any_anterior,
+                                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: `Comparativa Facturació ${data.any_actual_nom} vs ${data.any_anterior_nom}`
+                                },
+                                legend: {
+                                    position: 'top'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value + ' €';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Resum en text
+                    const totalActual = data.any_actual.reduce((a, b) => a + b, 0);
+                    const totalAnterior = data.any_anterior.reduce((a, b) => a + b, 0);
+                    const diferencia = totalActual - totalAnterior;
+                    const percent = totalAnterior > 0 ? ((diferencia / totalAnterior) * 100).toFixed(1) : 0;
+
+                    document.getElementById('resum_dades').innerHTML = `
+                        <h3>Resum ${data.any_actual_nom}</h3>
+                        <p>💰 Total facturat: <strong>${totalActual.toFixed(2)} €</strong></p>
+                        <p>📊 Diferència vs ${data.any_anterior_nom}: 
+                            <strong style="color: ${diferencia >= 0 ? 'green' : 'red'}">
+                                ${diferencia >= 0 ? '+' : ''}${diferencia.toFixed(2)} € 
+                                (${percent}%)
+                            </strong>
+                        </p>
+                    `;
+                });
+        }
+
+        // ========== UTILITY: Número de setmana ==========
+        Date.prototype.getWeekNumber = function() {
+            const d = new Date(this);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+            const week1 = new Date(d.getFullYear(), 0, 4);
+            return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+        };
+
+        // ========== INICI ==========
+        carregarSetmanaActual();
+
+        // ========== EDITAR FEINA ==========
+        function obrirEditor(id) {
+            // Buscar la feina a les dades carregades
+            const feina = feinesActuals.find(f => f.id === id);
+            if (!feina) {
+                alert('❌ No s\'ha trobat la feina');
+                return;
+            }
+            
+            // Crear modal d'edició
+            const modal = document.createElement('div');
+            modal.id = 'modal-editor';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 10px; max-width: 600px; width: 90%;">
+                    <h2 style="margin-bottom: 20px;">✏️ Editar Feina #${id}</h2>
+                    <div style="display: grid; gap: 10px;">
+                        <label>Núm. Comanda</label>
+                        <input id="edit-comanda" value="${feina.comanda}" style="padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label>Client</label>
+                        <input id="edit-client" value="${feina.client}" style="padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label>Unitats</label>
+                        <input id="edit-unitats" type="number" value="${feina.unitats}" style="padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label>Descripció</label>
+                        <input id="edit-descripcio" value="${feina.descripcio}" style="padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label>Import (€)</label>
+                        <input id="edit-import" type="number" step="0.01" value="${feina.import}" style="padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <label>Pressupost</label>
+                        <input id="edit-pressupost" value="${feina.pressupost || ''}" style="padding:8px;border:1px solid #ddd;border-radius:4px;">
+                    </div>
+                    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button onclick="tancarEditor()" style="padding:8px 20px;background:#6c757d;color:white;border:none;border-radius:4px;cursor:pointer;">❌ Cancel·lar</button>
+                        <button onclick="guardarEdicio(${id})" style="padding:8px 20px;background:#28a745;color:white;border:none;border-radius:4px;cursor:pointer;">💾 Guardar</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function tancarEditor() {
+            const modal = document.getElementById('modal-editor');
+            if (modal) modal.remove();
+        }
+
+        function guardarEdicio(id) {
+            const comanda = document.getElementById('edit-comanda').value;
+            const client = document.getElementById('edit-client').value;
+            const unitats = parseInt(document.getElementById('edit-unitats').value) || 0;
+            const descripcio = document.getElementById('edit-descripcio').value;
+            const import_valor = parseFloat(document.getElementById('edit-import').value) || 0;
+            const pressupost = document.getElementById('edit-pressupost').value;
+    
+            // 🔧 Obtenir l'estat actual de la feina (el que tenia abans d'editar)
+            const feina = feinesActuals.find(f => f.id === id);
+            const estat = feina ? feina.estat : 1;
+    
+            if (!client || !descripcio) {
+                alert('⚠️ Client i Descripció són obligatoris!');
+                return;
+            }
+    
+            fetch(`/api/feines/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    comanda, 
+                    client, 
+                    unitats, 
+                    descripcio, 
+                    import: import_valor, 
+                    pressupost,
+                    estat: estat  // 🔧 Enviar l'estat actual
+                })
+            })
+            .then(res => res.json())
+            .then(() => {
+                tancarEditor();
+                carregarSetmana();
+            })
+            .catch(error => {
+                alert('❌ Error al guardar: ' + error);
+            });
+        }
+        // ========== ELIMINAR FEINA ==========
+        function eliminarFeina(id) {
+            if (!confirm(`⚠️ Segur que vols eliminar la feina #${id}? Aquesta acció no es pot desfer.`)) {
+                return;
+            }
+            
+            fetch(`/api/feines/${id}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(() => {
+                carregarSetmana();
+            })
+            .catch(error => {
+                alert('❌ Error al eliminar: ' + error);
+            });
+        }
+        // ========== CERCA ==========
+        let cercaTimeout = null;
+
+        function cercaFeines() {
+            const query = document.getElementById('cerca').value.trim();
+            const tipus = document.getElementById('tipus_cerca').value;
+            
+            if (cercaTimeout) clearTimeout(cercaTimeout);
+            
+            if (!query || query.length < 2) {
+                if (tipus === 'local') {
+                    carregarSetmana();
+                } else {
+                    const tbody = document.getElementById('taula_feines');
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;">🔍 Escriu per cercar a totes les setmanes</td></tr>';
+                    document.getElementById('total_setmana').textContent = 'Total: 0,00 € (0 feines)';
+                }
+                return;
+            }
+            
+            cercaTimeout = setTimeout(() => {
+                if (tipus === 'local') {
+                    filtrarLocal(query);
+                } else {
+                    cercaGlobal(query);
+                }
+            }, 300);
+        }
+
+        function filtrarLocal(query) {
+            const q = query.toLowerCase();
+            const filtrades = feinesActuals.filter(f => 
+                f.client.toLowerCase().includes(q) ||
+                f.descripcio.toLowerCase().includes(q) ||
+                f.comanda.toLowerCase().includes(q)
+            );
+            mostrarResultatsCerca(filtrades, true);
+        }
+
+        function cercaGlobal(query) {
+            fetch(`/api/cerca?q=${encodeURIComponent(query)}&limit=200`)
+                .then(res => res.json())
+                .then(data => {
+                    mostrarResultatsCerca(data.feines, false);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ Error a la cerca: ' + error);
+                });
+        }
+
+        function mostrarResultatsCerca(feines, esLocal) {
+            const tbody = document.getElementById('taula_feines');
+            tbody.innerHTML = '';
+            
+            if (feines.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#999;">🔍 No s'han trobat feines</td></tr>`;
+                document.getElementById('total_setmana').textContent = 'Total: 0,00 € (0 feines)';
+                return;
+            }
+            
+            let total = 0;
+            feines.forEach(f => {
+                total += f.import;
+                const tr = document.createElement('tr');
+                let classe = '';
+                if (f.estat === 1) classe = 'estat-pendent';
+                else if (f.estat === 3) classe = 'estat-acabat';
+                tr.className = classe;
+                
+                const infoExtra = esLocal ? '' : `<br><small style="color:#666;">Setmana ${f.setmana} de ${f.any}</small>`;
+                
+                tr.innerHTML = `
+                    <td>${f.id}</td>
+                    <td>${f.comanda}</td>
+                    <td>${f.client}</td>
+                    <td>${f.unitats}</td>
+                    <td>${f.descripcio} ${infoExtra}</td>
+                    <td>${f.import.toFixed(2)}</td>
+                    <td>${f.pressupost || ''}</td>
+                    <td>
+                        <select class="estat-selector" onchange="canviarEstat(${f.id}, this.value)">
+                            <option value="1" ${f.estat === 1 ? 'selected' : ''}>🟡 Pendent</option>
+                            <option value="2" ${f.estat === 2 ? 'selected' : ''}>⬜ Imprès</option>
+                            <option value="3" ${f.estat === 3 ? 'selected' : ''}>🟢 Acabat</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button onclick="obrirEditor(${f.id})" style="background:#007bff;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">✏️</button>
+                        <button onclick="eliminarFeina(${f.id})" style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            const text = esLocal ? 'setmana' : 'cerca global';
+            document.getElementById('total_setmana').textContent = 
+                `Total ${text}: ${total.toFixed(2)} € (${feines.length} feines)`;
+        }
+        // ========== CARREGAR ÚLTIM MES ==========
+        function carregarUltimMes() {
+            const any = document.getElementById('resum_any').value;
+            
+            fetch(`/api/ultim_mes?any=${any}`)
+                .then(res => res.json())
+                .then(data => {
+                    const indicador = document.getElementById('ultim-mes-indicador');
+                    
+                    if (data.error || !data.mes) {
+                        indicador.style.display = 'none';
+                        return;
+                    }
+                    
+                    indicador.style.display = 'block';
+                    
+                    // Omplir dades
+                    document.getElementById('ultim-mes-nom').textContent = `${data.mes_nom} ${data.mes_num} de ${data.any}`;
+                    document.getElementById('any-actual-label').textContent = data.any;
+                    document.getElementById('ultim-total-actual').textContent = data.total_actual.toFixed(2) + ' €';
+                    document.getElementById('ultim-feines-actual').textContent = `(${data.feines_actual} feines)`;
+                    
+                    document.getElementById('any-anterior-label').textContent = data.any_anterior;
+                    document.getElementById('ultim-total-anterior').textContent = data.total_anterior.toFixed(2) + ' €';
+                    document.getElementById('ultim-feines-anterior').textContent = `(${data.feines_anterior} feines)`;
+                    
+                    // Diferència
+                    const diffEl = document.getElementById('ultim-diferencia');
+                    const signe = data.diferencia >= 0 ? '+' : '';
+                    diffEl.textContent = `${signe}${data.diferencia.toFixed(2)} €`;
+                    diffEl.style.color = data.diferencia >= 0 ? '#28a745' : '#dc3545';
+                    
+                    const percentEl = document.getElementById('ultim-percent');
+                    percentEl.textContent = `${signe}${data.percent.toFixed(1)}%`;
+                    percentEl.style.color = data.diferencia >= 0 ? '#28a745' : '#dc3545';
+                    
+                    // Icona
+                    const iconEl = document.getElementById('tendencia-icon');
+                    if (data.diferencia > 0) {
+                        iconEl.textContent = '📈';
+                        iconEl.style.color = '#28a745';
+                    } else if (data.diferencia < 0) {
+                        iconEl.textContent = '📉';
+                        iconEl.style.color = '#dc3545';
+                    } else {
+                        iconEl.textContent = '➖';
+                        iconEl.style.color = '#ffc107';
+                    }
+                    
+                    // Color de la vora
+                    indicador.style.borderLeftColor = data.diferencia >= 0 ? '#28a745' : '#dc3545';
+                })
+                .catch(error => {
+                    console.error('Error carregant últim mes:', error);
+                });
+        }
+    </script>
+</body>
+</html>
