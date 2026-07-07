@@ -141,6 +141,22 @@ def crear_feina():
     
     return jsonify({'success': True})
 
+@app.route('/api/feines/<int:id>/estat', methods=['PUT'])
+def actualitzar_estat(id):
+    """Actualitza només l'estat d'una feina"""
+    data = request.json
+    nou_estat = data.get('estat')
+    if nou_estat is None:
+        return jsonify({'error': 'Estat no proporcionat'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE feines SET estat = ? WHERE id = ?', (nou_estat, id))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
+
 @app.route('/api/feines/<int:id>', methods=['PUT'])
 def actualitzar_feina(id):
     """Actualitza totes les dades d'una feina"""
@@ -449,4 +465,4 @@ def cerca_feines():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5007)
+    app.run(debug=False, host='0.0.0.0', port=5007)
