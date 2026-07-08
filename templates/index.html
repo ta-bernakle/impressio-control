@@ -328,7 +328,6 @@
             <div id="info_setmana" style="margin-bottom: 10px; color: #666;"></div>
 
             <table>
-                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Comanda</th>
@@ -336,6 +335,7 @@
                         <th>Unitats</th>
                         <th>Descripció</th>
                         <th>Import (€)</th>
+                        <th>Preu / 1000</th>
                         <th>Pressupost</th>
                         <th>Estat</th>
                         <th>Accions</th>
@@ -534,15 +534,16 @@
                             <td data-label="Unitats">${f.unitats}</td>
                             <td data-label="Descripció">${f.descripcio}</td>
                             <td data-label="Import">${f.import.toFixed(2)} €</td>
+                            <td data-label="Preu / 1000">${f.preu_miler ? f.preu_miler.toFixed(2) : '0.00'} €</td>
                             <td data-label="Pressupost">${f.pressupost || ''}</td>
-                             <td data-label="Estat"> 
+                            <td data-label="Estat">
                                 <select class="estat-selector" onchange="canviarEstat(${f.id}, this.value)">
                                     <option value="1" ${f.estat === 1 ? 'selected' : ''}>🟡 Pendent</option>
                                     <option value="2" ${f.estat === 2 ? 'selected' : ''}>⬜ Imprès</option>
                                     <option value="3" ${f.estat === 3 ? 'selected' : ''}>🟢 Acabat</option>
                                 </select>
                             </td>
-                             <td data-label="Estat"> 
+                            <td data-label="Accions">
                                 <button onclick="obrirEditor(${f.id})" style="background:#007bff;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">✏️</button>
                                 <button onclick="eliminarFeina(${f.id})" style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">🗑️</button>
                             </td>
@@ -851,17 +852,18 @@
                     <td data-label="Comanda">${f.comanda}</td>
                     <td data-label="Client">${f.client}</td>
                     <td data-label="Unitats">${f.unitats}</td>
-                    <td data-label="Estat">${f.descripcio} ${infoExtra}</td>
+                    <td data-label="Descripció">${f.descripcio} ${infoExtra}</td>
                     <td data-label="Import">${f.import.toFixed(2)} €</td>
+                    <td data-label="Preu / 1000">${f.preu_miler ? f.preu_miler.toFixed(2) : '0.00'} €</td>
                     <td data-label="Pressupost">${f.pressupost || ''}</td>
-                     <td data-label="Estat"> 
+                    <td data-label="Estat">
                         <select class="estat-selector" onchange="canviarEstat(${f.id}, this.value)">
                             <option value="1" ${f.estat === 1 ? 'selected' : ''}>🟡 Pendent</option>
                             <option value="2" ${f.estat === 2 ? 'selected' : ''}>⬜ Imprès</option>
                             <option value="3" ${f.estat === 3 ? 'selected' : ''}>🟢 Acabat</option>
                         </select>
                     </td>
-                     <td data-label="Estat"> 
+                    <td data-label="Accions">
                         <button onclick="obrirEditor(${f.id})" style="background:#007bff;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">✏️</button>
                         <button onclick="eliminarFeina(${f.id})" style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">🗑️</button>
                     </td>

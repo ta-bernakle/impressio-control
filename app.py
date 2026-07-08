@@ -49,18 +49,24 @@ def get_feines():
     
     resultat = []
     for row in feines:
+        # Calcular preu per miler (si unitats > 0)
+        unitats = row['unitats']
+        import_valor = row['import']
+        preu_miler = (import_valor / unitats * 1000) if unitats > 0 else 0.0
+        
         resultat.append({
             'id': row['id'],
             'comanda': row['comanda'],
             'client': row['client'],
-            'unitats': row['unitats'],
+            'unitats': unitats,
             'descripcio': row['descripcio'],
-            'import': row['import'],
+            'import': import_valor,
+            'preu_miler': round(preu_miler, 2),
             'pressupost': row['pressupost'],
             'estat': row['estat'],
             'data_entrada': row['data_entrada']
-        })
-    
+        }) 
+
     primer_dia = datetime(any, 1, 1)
     if primer_dia.weekday() != 0:
         dies_fins_dilluns = (7 - primer_dia.weekday()) % 7
@@ -444,13 +450,18 @@ def cerca_feines():
     
     resultat = []
     for row in feines:
+        unitats = row[3]
+        import_valor = row[5]
+        preu_miler = (import_valor / unitats * 1000) if unitats > 0 else 0.0
+        
         resultat.append({
             'id': row[0],
             'comanda': row[1],
             'client': row[2],
-            'unitats': row[3],
+            'unitats': unitats,
             'descripcio': row[4],
-            'import': row[5],
+            'import': import_valor,
+            'preu_miler': round(preu_miler, 2),
             'pressupost': row[6],
             'estat': row[7],
             'data_entrada': row[8],
