@@ -17,6 +17,8 @@ Aplicació web per al control de feines d'impressió digital. Permet gestionar c
 | **Resum mensual** | Gràfic comparatiu any actual vs any anterior |
 | **Indicador últim mes** | Comparativa ràpida de l'últim mes complet vs mateix mes any anterior |
 | **Persistència** | SQLite amb dades importades de 2025 i 2026 |
+| **Navegació ràpida** | Botons ◀ ▶ per canviar de setmana sense haver de fer clic a "Carregar" |
+| **Responsive** | Adaptat per a mòbils: formulari en vertical, taula convertida en targetes |
 
 ## 🛠️ Tecnologies
 
