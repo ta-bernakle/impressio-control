@@ -325,6 +325,33 @@
                     </select>
                 </div>
             </div>
+            <!-- 📋 FEINES PENDENTS DE SETMANES ANTERIORS -->
+            <div id="pendents-container" style="display: none; margin-bottom: 15px; padding: 15px; background: #fff3cd; border-left: 6px solid #ffc107; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0; color: #856404;">⏳ Feines pendents de setmanes anteriors</h3>
+                    <span id="pendents-comptador" style="background: #ffc107; padding: 4px 12px; border-radius: 20px; font-weight: bold;">0</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden;">
+                        <thead style="background: #ffc107; color: #333;">
+                            <tr>
+                                <th style="padding: 8px 10px; text-align: left;">ID</th>
+                                <th style="padding: 8px 10px; text-align: left;">Comanda</th>
+                                <th style="padding: 8px 10px; text-align: left;">Client</th>
+                                <th style="padding: 8px 10px; text-align: left;">Unitats</th>
+                                <th style="padding: 8px 10px; text-align: left;">Descripció</th>
+                                <th style="padding: 8px 10px; text-align: left;">Import (€)</th>
+                                <th style="padding: 8px 10px; text-align: left;">Preu / 1000</th>
+                                <th style="padding: 8px 10px; text-align: left;">Setmana</th>
+                                <th style="padding: 8px 10px; text-align: center;">Accions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendents-taula">
+                            <tr><td colspan="9" style="text-align:center; padding:15px;">No hi ha feines pendents de setmanes anteriors.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div id="info_setmana" style="margin-bottom: 10px; color: #666;"></div>
 
             <table>
@@ -512,6 +539,8 @@
                 .then(res => res.json())
                 .then(data => {
                     feinesActuals = data.feines;
+                    // Carregar feines pendents de setmanes anteriors
+                    carregarPendents(setmana, any);
                     document.getElementById('info_setmana').textContent = 
                         `Setmana ${data.setmana} de ${data.any} (${data.data_inici} - ${data.data_fi})`;
                     
@@ -930,6 +959,72 @@
                 .catch(error => {
                     console.error('Error carregant últim mes:', error);
                 });
+        }
+        // ========== FEINES PENDENTS DE SETMANES ANTERIORS ==========
+        function carregarPendents(setmana, any) {
+            fetch(`/api/pendents?setmana=${setmana}&any=${any}`)
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('pendents-container');
+                    const tbody = document.getElementById('pendents-taula');
+                    
+                    if (data.total === 0) {
+                        container.style.display = 'none';
+                        return;
+                    }
+                    
+                    container.style.display = 'block';
+                    document.getElementById('pendents-comptador').textContent = data.total;
+                    
+                    tbody.innerHTML = '';
+                    data.feines.forEach(f => {
+                        const tr = document.createElement('tr');
+                        tr.style.borderBottom = '1px solid #eee';
+                        tr.innerHTML = `
+                            <td style="padding: 8px 10px;">${f.id}</td>
+                            <td style="padding: 8px 10px;">${f.comanda}</td>
+                            <td style="padding: 8px 10px;">${f.client}</td>
+                            <td style="padding: 8px 10px;">${f.unitats}</td>
+                            <td style="padding: 8px 10px;">${f.descripcio}</td>
+                            <td style="padding: 8px 10px;">${f.import.toFixed(2)} €</td>
+                            <td style="padding: 8px 10px;">${f.preu_miler ? f.preu_miler.toFixed(2) : '0.00'} €</td>
+                            <td style="padding: 8px 10px;">${f.setmana} de ${f.any}</td>
+                            <td style="padding: 8px 10px; text-align: center;">
+                                <button onclick="marcarImpres(${f.id})" style="background:#28a745;color:white;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;">✅ Marcar Imprès</button>
+                                <button onclick="moureSetmanaActual(${f.id})" style="background:#007bff;color:white;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;">📅 Moure</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+        // ========== MARCAR COM A IMPRÈS ==========
+        function marcarImpres(id) {
+            if (!confirm('✅ Marcar aquesta feina com a "Imprès"?')) return;
+            
+            fetch(`/api/feines/${id}/estat`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ estat: 2 })
+            })
+            .then(() => {
+                carregarSetmana();
+            });
+        }
+
+        // ========== MOURE A LA SETMANA ACTUAL ==========
+        function moureSetmanaActual(id) {
+            if (!confirm('📅 Moure aquesta feina a la setmana actual?')) return;
+            
+            // Marcar com a pendent (per si de cas) i actualitzar la vista
+            fetch(`/api/feines/${id}/estat`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ estat: 1 })
+            })
+            .then(() => {
+                carregarSetmana();
+            });
         }
     </script>
 </body>

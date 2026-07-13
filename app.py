@@ -475,5 +475,67 @@ def cerca_feines():
         'query': query
     })
 
+@app.route('/api/pendents', methods=['GET'])
+def get_pendents():
+    """Retorna les feines pendents de setmanes anteriors a la setmana actual"""
+    setmana_actual = request.args.get('setmana', type=int)
+    any_actual = request.args.get('any', type=int, default=2026)
+    
+    if not setmana_actual:
+        return jsonify({'error': 'Setmana no especificada'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Obtenir les feines pendents (estat = 1) de setmanes anteriors a la setmana actual
+    cursor.execute('''
+        SELECT 
+            id,
+            comanda,
+            client,
+            unitats,
+            descripcio,
+            import,
+            pressupost,
+            estat,
+            data_entrada,
+            strftime('%W', data_entrada) AS setmana,
+            strftime('%Y', data_entrada) AS any
+        FROM feines
+        WHERE estat = 1
+          AND (strftime('%Y', data_entrada) < ? 
+               OR (strftime('%Y', data_entrada) = ? AND strftime('%W', data_entrada) < ?))
+        ORDER BY data_entrada DESC
+    ''', (str(any_actual), str(any_actual), f'{setmana_actual:02d}'))
+    
+    feines = cursor.fetchall()
+    conn.close()
+    
+    resultat = []
+    for row in feines:
+        unitats = row[3]
+        import_valor = row[5]
+        preu_miler = (import_valor / unitats * 1000) if unitats > 0 else 0.0
+        
+        resultat.append({
+            'id': row[0],
+            'comanda': row[1],
+            'client': row[2],
+            'unitats': unitats,
+            'descripcio': row[4],
+            'import': import_valor,
+            'preu_miler': round(preu_miler, 2),
+            'pressupost': row[6],
+            'estat': row[7],
+            'data_entrada': row[8],
+            'setmana': row[9],
+            'any': row[10]
+        })
+    
+    return jsonify({
+        'feines': resultat,
+        'total': len(resultat)
+    })
+
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5007)
