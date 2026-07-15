@@ -310,4 +310,20 @@ Projecte privat — Ús intern de l'empresa.
 🤝 Contacte
 Per a dubtes o millores, contacta amb l'administrador del sistema.
 
-Última actualització: 07/07/2026
+### 6. L'estat "Imprès" es mostra sense color de fons
+
+**Símptoma:**
+Quan una feina està en estat "Imprès", la fila es mostra amb fons blanc (o sense el color definit al CSS), mentre que els estats "Pendent" i "Acabat" es mostren correctament.
+
+**Causa:**
+A la funció `carregarSetmana()` de l'`index.html`, només s'assignaven classes per als estats `1` (Pendent) i `3` (Acabat). L'estat `2` (Imprès) no tenia cap classe assignada, per tant, el CSS no s'aplicava.
+
+**Solució:**
+Afegir la línia `else if (f.estat === 2) classe = 'estat-impres';` a la funció `carregarSetmana()`.
+
+**Comanda `sed` per aplicar la correcció:**
+```bash
+sudo sed -i '/else if (f.estat === 3)/i \                        else if (f.estat === 2) classe = '\''estat-impres'\'';' /home/santi/impressio-control/templates/index.html
+
+
+Última actualització: 15/07/2026

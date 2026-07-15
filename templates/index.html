@@ -118,16 +118,16 @@
             background: #f8f9fa;
         }
         .estat-pendent {
-            background-color: #ffeb3b !important;
+            background-color: #FFC107 !important;
             font-weight: bold;
             color: #000 !important;
         }
         .estat-impres {
-            background-color: white !important;
+            background-color: #FA93DE !important;
             color: #000 !important;
         }
         .estat-acabat {
-            background-color: #c8e6c9 !important;
+            background-color: #45FF00 !important;
             color: #000 !important;
             font-weight: 600 !important; /* FORÇA RECÀRREGA v2 */
         }
@@ -553,6 +553,7 @@
                         const tr = document.createElement('tr');
                         let classe = '';
                         if (f.estat === 1) classe = 'estat-pendent';
+                        else if (f.estat === 2) classe = 'estat-impres';
                         else if (f.estat === 3) classe = 'estat-acabat';
                         tr.className = classe;
                         
@@ -871,6 +872,7 @@
                 const tr = document.createElement('tr');
                 let classe = '';
                 if (f.estat === 1) classe = 'estat-pendent';
+                        else if (f.estat === 2) classe = 'estat-impres';
                 else if (f.estat === 3) classe = 'estat-acabat';
                 tr.className = classe;
                 
