@@ -502,7 +502,7 @@ def get_pendents():
             strftime('%W', data_entrada) AS setmana,
             strftime('%Y', data_entrada) AS any
         FROM feines
-        WHERE estat = 1
+        WHERE estat IN (1, 2)
           AND (strftime('%Y', data_entrada) < ? 
                OR (strftime('%Y', data_entrada) = ? AND strftime('%W', data_entrada) < ?))
         ORDER BY data_entrada DESC
